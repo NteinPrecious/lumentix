@@ -1,5 +1,6 @@
 import {
   Controller,
+  ForbiddenException,
   Get,
   Post,
   Put,
@@ -22,6 +23,7 @@ import {
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiBody,
   ApiConsumes,
@@ -41,7 +43,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuthenticatedRequest } from '../common/interfaces/authenticated-request.interface';
 import { TicketsService } from '../tickets/tickets.service';
-import { StorageService } from '../common/storage/storage.service';
+import { WebhooksService } from '../webhooks/webhooks.service';
 import { Event } from './entities/event.entity';
 
 @ApiTags('Events')
@@ -54,7 +56,7 @@ export class EventsController {
     private readonly eventsService: EventsService,
     @Inject(forwardRef(() => TicketsService))
     private readonly ticketsService: TicketsService,
-    private readonly storageService: StorageService,
+    private readonly webhooksService: WebhooksService,
   ) {}
 
   @Post()
@@ -72,14 +74,29 @@ export class EventsController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get an event by ID' })
+  @ApiOperation({
+    summary: 'Get an event by ID',
+    description:
+      'Retrieves full details including soldTickets and availableSpots.',
+  })
+  @ApiParam({ name: 'id', description: 'Event UUID' })
+  @ApiResponse({ status: 200, description: 'Event found', type: Event })
+  @ApiResponse({ status: 404, description: 'Event not found' })
   getById(@Param('id', ParseUUIDPipe) id: string) {
     return this.eventsService.getEventById(id);
   }
 
   @Put(':id')
   @Roles(Role.ORGANIZER)
-  @ApiOperation({ summary: 'Update an event' })
+  @ApiOperation({
+    summary: 'Update an event',
+    description: 'Organizer-only. Allows updating event details.',
+  })
+  @ApiParam({ name: 'id', description: 'Event UUID' })
+  @ApiBody({ type: UpdateEventDto })
+  @ApiResponse({ status: 200, description: 'Event updated', type: Event })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Event not found' })
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateEventDto,
@@ -174,7 +191,14 @@ export class EventsController {
   @Delete(':id')
   @Roles(Role.ORGANIZER)
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete an event' })
+  @ApiOperation({
+    summary: 'Delete an event',
+    description: 'Organizer-only. Soft deletes an event if no tickets sold.',
+  })
+  @ApiParam({ name: 'id', description: 'Event UUID' })
+  @ApiResponse({ status: 204, description: 'Event deleted' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Event not found' })
   delete(
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: AuthenticatedRequest,
@@ -184,6 +208,16 @@ export class EventsController {
 
   @Post(':id/publish')
   @Roles(Role.ORGANIZER)
+  @ApiOperation({
+    summary: 'Publish an event',
+    description:
+      'Organizer-only. Transitions DRAFT → PUBLISHED and sets up escrow.',
+  })
+  @ApiParam({ name: 'id', description: 'Event UUID' })
+  @ApiResponse({ status: 201, description: 'Event published', type: Event })
+  @ApiResponse({ status: 400, description: 'Invalid state transition' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Event not found' })
   publish(
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: AuthenticatedRequest,
@@ -193,6 +227,19 @@ export class EventsController {
 
   @Post(':id/complete')
   @Roles(Role.ORGANIZER)
+  @ApiOperation({
+    summary: 'Complete an event',
+    description:
+      'Organizer-only. Transitions PUBLISHED → COMPLETED. Only allowed after endDate.',
+  })
+  @ApiParam({ name: 'id', description: 'Event UUID' })
+  @ApiResponse({ status: 201, description: 'Event completed', type: Event })
+  @ApiResponse({
+    status: 400,
+    description: 'Event has not ended yet or invalid transition',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Event not found' })
   complete(
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: AuthenticatedRequest,
@@ -202,6 +249,15 @@ export class EventsController {
 
   @Post(':id/cancel')
   @Roles(Role.ORGANIZER)
+  @ApiOperation({
+    summary: 'Cancel an event',
+    description:
+      'Organizer-only. Cancels the event and automatically triggers refunds.',
+  })
+  @ApiParam({ name: 'id', description: 'Event UUID' })
+  @ApiResponse({ status: 201, description: 'Event cancelled' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Event not found' })
   cancel(
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: AuthenticatedRequest,
@@ -211,6 +267,19 @@ export class EventsController {
 
   @Get(':id/stats')
   @Roles(Role.ORGANIZER)
+  @ApiOperation({
+    summary: 'Get event stats',
+    description:
+      'Organizer-only. Returns revenue, ticket counts, sponsorship totals.',
+  })
+  @ApiParam({ name: 'id', description: 'Event UUID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Event stats',
+    type: EventStatsResponseDto,
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Event not found' })
   getStats(
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: AuthenticatedRequest,
@@ -239,6 +308,12 @@ export class EventsController {
 
   @Post(':id/duplicate')
   @Roles(Role.ORGANIZER)
+  @ApiOperation({ summary: 'Duplicate an event', description: 'Organizer-only. Creates a DRAFT copy of an existing event.' })
+  @ApiParam({ name: 'id', description: 'Event UUID to duplicate' })
+  @ApiBody({ type: DuplicateEventDto })
+  @ApiResponse({ status: 201, description: 'Event duplicated', type: Event })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Event not found' })
   duplicate(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: DuplicateEventDto,
@@ -276,5 +351,25 @@ export class EventsController {
     @Req() req: AuthenticatedRequest,
   ) {
     return this.eventsService.deleteEventImage(id, imageId, req.user.id);
+
+  @Get(':id/webhooks/deliveries')
+  @Roles(Role.ORGANIZER)
+  @ApiOperation({
+    summary: 'Get webhook delivery history',
+    description: 'Organizer-only. Returns the last 50 outbound webhook deliveries for this event.',
+  })
+  @ApiParam({ name: 'id', description: 'Event UUID' })
+  @ApiResponse({ status: 200, description: 'Webhook delivery records' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Event not found' })
+  async getWebhookDeliveries(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const event = await this.eventsService.getEventById(id);
+    if (event.organizerId !== req.user.id) {
+      throw new ForbiddenException();
+    }
+    return this.webhooksService.getDeliveries(id);
   }
 }

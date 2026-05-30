@@ -44,6 +44,7 @@ export interface PaginatedResult<T> {
 export type EventWithCapacity = Event & {
   soldTickets: number;
   remainingCapacity: number | null;
+  availableSpots: number | null;
 };
 
 @Injectable()
@@ -202,10 +203,15 @@ export class EventsService {
     const soldTickets = await this.ticketRepository.count({
       where: { eventId: id, status: 'valid' },
     });
+
+    const remainingCapacity =
+      event.maxAttendees !== null ? event.maxAttendees - soldTickets : null;
+
     return {
       ...event,
       soldTickets,
-      remainingCapacity: event.maxAttendees !== null ? event.maxAttendees - soldTickets : null,
+      remainingCapacity,
+      availableSpots: remainingCapacity,
     };
   }
 
@@ -244,10 +250,13 @@ export class EventsService {
     const [rawEvents, total] = await Promise.all([qb.getRawAndEntities(), qb.getCount()]);
     const data: EventWithCapacity[] = rawEvents.entities.map((event, i) => {
       const soldTickets = Number(rawEvents.raw[i]?.soldTickets ?? 0);
+      const remainingCapacity =
+        event.maxAttendees !== null ? event.maxAttendees - soldTickets : null;
       return {
         ...event,
         soldTickets,
-        remainingCapacity: event.maxAttendees !== null ? event.maxAttendees - soldTickets : null,
+        remainingCapacity,
+        availableSpots: remainingCapacity,
       };
     });
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
