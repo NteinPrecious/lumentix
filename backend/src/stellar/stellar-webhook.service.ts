@@ -26,8 +26,7 @@ export interface DlqItem {
 const RECONNECT_DELAY_MS = 5_000;
 const MAX_RECONNECT_DELAY_MS = 60_000;
 const BACKOFF_MULTIPLIER = 2;
-const MAX_DLQ_RETRIES = 5;
-const DLQ_RETRY_DELAY_MS = 30_000;
+const MAX_CONSECUTIVE_FAILURES = 10;
 
 @Injectable()
 export class StellarWebhookService implements OnModuleInit, OnModuleDestroy {
@@ -37,6 +36,7 @@ export class StellarWebhookService implements OnModuleInit, OnModuleDestroy {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private reconnectDelay = RECONNECT_DELAY_MS;
   private destroyed = false;
+  consecutiveFailures: number = 0;
 
   /**
    * In-memory dead-letter queue.
@@ -68,100 +68,15 @@ export class StellarWebhookService implements OnModuleInit, OnModuleDestroy {
     this.logger.log('Stellar payment stream shut down');
   }
 
-  // ─── Dead-letter queue ─────────────────────────────────────────────────────
+  // ─── Public reconnect (admin-triggered) ──────────────────────────────────
 
-  /** Return a snapshot of the current DLQ items (for admin endpoint). */
-  getDlqItems(): DlqItem[] {
-    return [...this.deadLetterQueue];
-  }
-
-  private enqueueDlq(
-    payment: Horizon.ServerApi.PaymentOperationRecord,
-    error: string,
-  ): void {
-    const item: DlqItem = {
-      id: payment.id,
-      transactionHash: payment.transaction_hash,
-      type: payment.type,
-      payload: payment as unknown as Record<string, unknown>,
-      retryCount: 0,
-      enqueuedAt: new Date().toISOString(),
-      lastError: error,
-    };
-    this.deadLetterQueue.push(item);
-    this.logger.warn(
-      `Enqueued unmatched event in DLQ: tx=${payment.transaction_hash}, reason=${error}`,
-    );
-  }
-
-  private startDlqProcessor(): void {
-    this.dlqProcessingInterval = setInterval(() => {
-      void this.processDlqRetries();
-    }, DLQ_RETRY_DELAY_MS);
-    this.logger.log(`DLQ processor started (interval=${DLQ_RETRY_DELAY_MS}ms)`);
-  }
-
-  private stopDlqProcessor(): void {
-    if (this.dlqProcessingInterval) {
-      clearInterval(this.dlqProcessingInterval);
-      this.dlqProcessingInterval = null;
-    }
-  }
-
-  private async processDlqRetries(): Promise<void> {
-    if (this.deadLetterQueue.length === 0) return;
-
-    const itemsToRetry = [...this.deadLetterQueue];
-    this.deadLetterQueue.length = 0; // clear — success items stay out, failures go back in
-
-    for (const item of itemsToRetry) {
-      if (item.retryCount >= MAX_DLQ_RETRIES) {
-        this.logger.error(
-          `DLQ item permanently failed after ${MAX_DLQ_RETRIES} retries: tx=${item.transactionHash}`,
-        );
-        // Write a permanent failure audit record
-        this.logger.warn(
-          `[DLQ_PERMANENT_FAILURE] tx=${item.transactionHash} type=${item.type} retries=${item.retryCount}`,
-        );
-        continue;
-      }
-
-      try {
-        // Re-construct a minimal payment-like object for handlePayment
-        const payment = {
-          id: item.id,
-          type: item.type,
-          transaction_hash: item.transactionHash,
-          ...item.payload,
-        } as unknown as Horizon.ServerApi.PaymentOperationRecord;
-
-        // Try to match the event again
-        const confirmed =
-          (await this.tryConfirmPayment(payment.transaction_hash)) ||
-          (await this.tryConfirmSponsor(payment.transaction_hash));
-
-        if (confirmed) {
-          this.logger.log(
-            `DLQ item resolved on retry: tx=${item.transactionHash}`,
-          );
-        } else {
-          // Still unmatched — re-enqueue with incremented retry count
-          this.deadLetterQueue.push({
-            ...item,
-            retryCount: item.retryCount + 1,
-            lastError: 'Still unmatched after retry',
-          });
-        }
-      } catch (err: unknown) {
-        const reason =
-          err instanceof Error ? err.message : 'Unknown error during DLQ retry';
-        this.deadLetterQueue.push({
-          ...item,
-          retryCount: item.retryCount + 1,
-          lastError: reason,
-        });
-      }
-    }
+  reconnect(): void {
+    this.logger.log('Manual reconnect requested — resetting retry counter');
+    this.consecutiveFailures = 0;
+    this.reconnectDelay = RECONNECT_DELAY_MS;
+    this.clearReconnectTimer();
+    this.closeStream();
+    this.connect();
   }
 
   // ─── Connection management ────────────────────────────────────────────────
@@ -176,11 +91,27 @@ export class StellarWebhookService implements OnModuleInit, OnModuleDestroy {
         (payment) => void this.handlePayment(payment),
       );
 
-      // Reset backoff on successful connection
+      // Reset backoff and failure counter on successful connection
       this.reconnectDelay = RECONNECT_DELAY_MS;
+      this.consecutiveFailures = 0;
       this.logger.log('Stellar payment stream connected');
     } catch (err) {
-      this.logger.error('Failed to open stream, scheduling reconnect', err);
+      this.consecutiveFailures += 1;
+      this.logger.error(
+        `Failed to open stream (consecutive failures: ${this.consecutiveFailures})`,
+        err,
+      );
+
+      if (this.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+        this.logger.fatal(
+          '[STELLAR_STREAM_DEAD] Stellar payment stream has failed ' +
+            `${this.consecutiveFailures} consecutive times and will no longer ` +
+            'attempt to reconnect automatically. ' +
+            'Use POST /admin/stellar/reconnect to restart manually.',
+        );
+        return;
+      }
+
       this.scheduleReconnect();
     }
   }
@@ -203,13 +134,14 @@ export class StellarWebhookService implements OnModuleInit, OnModuleDestroy {
 
     this.reconnectTimer = setTimeout(() => {
       this.closeStream();
-      this.connect();
 
-      // Exponential backoff capped at max delay
+      // Exponential backoff capped at max delay (advance before next connect attempt)
       this.reconnectDelay = Math.min(
         this.reconnectDelay * BACKOFF_MULTIPLIER,
         MAX_RECONNECT_DELAY_MS,
       );
+
+      this.connect();
     }, this.reconnectDelay);
   }
 
