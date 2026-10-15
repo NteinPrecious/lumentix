@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, LessThan, Repository, QueryFailedError } from 'typeorm';
+import { DataSource, LessThan, Repository } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { randomBytes, randomInt } from 'crypto';
 import { LoyaltyAccount } from './entities/loyalty-account.entity';

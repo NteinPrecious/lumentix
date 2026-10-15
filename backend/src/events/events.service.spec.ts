@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { EventsService } from './events.service';
 import { Event, EventStatus, EventCategory, EventAgeRestriction } from './entities/event.entity';
 import { EventHistory } from './entities/event-history.entity';

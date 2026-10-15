@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
-import { AchievementCategory } from '../entities/achievement.entity';
+import { IsEnum, IsObject, IsOptional, IsString } from 'class-validator';
+
 
 /**
  * Describes a user activity that should trigger achievement checks and XP awards.

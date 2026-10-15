@@ -16,7 +16,7 @@ import { TicketEntity } from '../tickets/entities/ticket.entity';
 import { Payment } from '../payments/entities/payment.entity';
 import { SponsorContribution } from '../sponsors/entities/sponsor-contribution.entity';
 import { RefundModule } from '../payments/refunds/refund.module';
-import { EventImage } from './entities/event-image.entity';
+
 import { BullModule } from '@nestjs/bull';
 import { CancelEventProcessor } from './jobs/cancel-event.processor';
 import { WebhooksModule } from '../webhooks/webhooks.module';

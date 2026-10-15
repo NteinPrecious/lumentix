@@ -25,10 +25,10 @@ export interface LeaderboardPage {
   page: number;
   limit: number;
   totalPages: number;
-import { Repository, In, MoreThan } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
-import { Achievement, AchievementCategory, AchievementTier } from './entities/achievement.entity';
+import { Achievement, AchievementCategory } from './entities/achievement.entity';
 import { UserAchievement } from './entities/user-achievement.entity';
 import { GamificationProfile } from './entities/user-profile.entity';
 import { LeaderboardEntry, LeaderboardPeriod } from './entities/leaderboard-entry.entity';

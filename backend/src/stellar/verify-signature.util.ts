@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { Keypair } from '@stellar/stellar-sdk';
 import * as crypto from 'crypto';
 

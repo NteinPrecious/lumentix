@@ -3,8 +3,8 @@ import * as PDFDocument from 'pdfkit';
 import * as fs from 'fs';
 import * as path from 'path';
 import { TicketEntity } from './entities/ticket.entity';
-import { Event } from '../events/entities/event.entity';
-import { User } from '../users/entities/user.entity';
+
+
 import { TicketSigningService } from './ticket-signing.service';
 
 @Injectable()

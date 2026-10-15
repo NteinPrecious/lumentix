@@ -27,7 +27,7 @@ import {
   Memo,
 } from '@stellar/stellar-sdk';
 import * as crypto from 'crypto';
-import { PersistedXdr, XdrStatus } from './entities/persisted-xdr.entity';
+import { XdrStatus } from './entities/persisted-xdr.entity';
 
 export type PaymentCallback = (
   payment: Horizon.ServerApi.PaymentOperationRecord,

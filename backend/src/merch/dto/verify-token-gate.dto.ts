@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsOptional, IsUUID } from 'class-validator';
 
 export class VerifyTokenGateDto {
   @ApiProperty({ description: 'Merchandise item ID', format: 'uuid' })

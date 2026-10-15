@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Payment, PaymentStatus } from '../entities/payment.entity';
+import { Payment } from '../entities/payment.entity';
 import { DisputeArbitration } from './entities/dispute-arbitration.entity';
 import { Arbitrator } from './entities/arbitrator.entity';
 import { DisputeClaimType } from './enums/dispute-claim-type.enum';

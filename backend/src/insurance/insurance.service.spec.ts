@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { InsuranceService } from './insurance.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { InsurancePolicyEntity, InsurancePolicyStatus } from './entities/insurance-policy.entity';
+import { InsurancePolicyEntity } from './entities/insurance-policy.entity';
 import { TicketEntity } from '../tickets/entities/ticket.entity';
-import { Event, EventStatus } from '../events/entities/event.entity';
-import { Payment, PaymentStatus } from '../payments/entities/payment.entity';
+import { Event } from '../events/entities/event.entity';
+import { Payment } from '../payments/entities/payment.entity';
 import { User } from '../users/entities/user.entity';
 import { StellarService } from '../stellar/stellar.service';
 import { AuditService } from '../audit/audit.service';

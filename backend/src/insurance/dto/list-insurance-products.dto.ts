@@ -1,13 +1,5 @@
-import {
-  IsOptional,
-  IsEnum,
-  IsString,
-  IsInt,
-  Min,
-  IsNumber,
-  IsBoolean,
-} from 'class-validator';
-import { Type, Transform } from 'class-transformer';
+import { IsOptional, IsEnum, IsString, IsInt, Min, IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { CoverageType } from '../enums/coverage-type.enum';
 import { InsuranceProductStatus } from '../enums/insurance-product-status.enum';

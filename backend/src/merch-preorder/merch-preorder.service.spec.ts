@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { MerchPreorderService } from './merch-preorder.service';
 import { MerchVariant } from './entities/merch-variant.entity';
 import { MerchPreorder } from './entities/merch-preorder.entity';

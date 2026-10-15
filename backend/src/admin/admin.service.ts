@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, ILike, IsNull } from 'typeorm';
+import { Repository } from 'typeorm';
 import { paginate } from '../common/pagination/pagination.helper';
 import { PaginatedResult } from '../common/pagination/interfaces/paginated-result.interface';
 import { User } from '../users/entities/user.entity';

@@ -26,11 +26,7 @@ import {
   AutomaticRefundResultDto,
 } from './dto';
 import { RefundPolicyService } from './services/refund-policy.service';
-import {
-  CancellationReason,
-  RefundDisputeStatus,
-  RefundProcessingMode,
-} from './enums';
+import { RefundDisputeStatus } from './enums';
 import { RefundCalculatorService } from './refund-calculator.service';
 import { paginate } from '../../common/pagination/pagination.helper';
 import { PaginationDto } from '../../common/pagination/dto/pagination.dto';

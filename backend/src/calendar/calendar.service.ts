@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Event } from '../events/entities/event.entity';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
+
+
 import { MailerService } from '../mailer/mailer.service';
 
 export interface CalendarAttendeeContact {

@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ScanAnalyticsService } from './scan-analytics.service';
-import { RecordScanDto, FetchRealtimeScanSpeedDto } from './dto/record-scan.dto';
+import { RecordScanDto } from './dto/record-scan.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../users/enums/user-role.enum';

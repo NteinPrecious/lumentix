@@ -6,7 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, In } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Event, EventStatus } from '../events/entities/event.entity';
 import { TicketEntity } from '../tickets/entities/ticket.entity';
 import { Payment, PaymentStatus } from '../payments/entities/payment.entity';

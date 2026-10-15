@@ -1,15 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  ParseUUIDPipe,
-  Req,
-  UseGuards,
-  Headers,
-  Res,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Req, UseGuards, Res, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { Response } from 'express';
 import {
   ApiBearerAuth,

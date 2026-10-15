@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import * as crypto from 'crypto';
 
 import { IotSensor, SensorStatus, SensorType } from './entities/iot-sensor.entity';

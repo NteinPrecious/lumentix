@@ -1,22 +1,4 @@
-import {
-  Body,
-  Controller,
-  ForbiddenException,
-  Get,
-  Headers,
-  HttpCode,
-  HttpStatus,
-  Param,
-  ParseUUIDPipe,
-  Post,
-  Query,
-  Req,
-  Res,
-  UseGuards,
-  UseInterceptors,
-  Inject,
-  forwardRef,
-} from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Headers, HttpStatus, Param, ParseUUIDPipe, Post, Query, Req, Res, UseGuards, UseInterceptors, Inject, forwardRef } from '@nestjs/common';
 import { Response } from 'express';
 import {
   ApiBearerAuth,

@@ -1,7 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ScheduleModule } from '@nestjs/schedule';
+
 import { TicketEntity } from './entities/ticket.entity';
 import { TicketSigningService } from './ticket-signing.service';
 import { TicketPdfService } from './ticket-pdf.service';

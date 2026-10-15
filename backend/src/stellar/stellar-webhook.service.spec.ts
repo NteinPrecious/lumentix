@@ -1,4 +1,4 @@
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { StellarWebhookService } from './stellar-webhook.service';
 import { Horizon } from '@stellar/stellar-sdk';
 

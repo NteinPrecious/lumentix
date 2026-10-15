@@ -1,19 +1,11 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { TelemetryService } from './telemetry.service';
 import { RecordMetricDto } from './dto/record-metric.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../users/enums/user-role.enum';
-import { AuthenticatedRequest } from '../common/interfaces/authenticated-request.interface';
+
 
 @ApiTags('Telemetry & Monitoring')
 @Controller('telemetry')

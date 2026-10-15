@@ -25,8 +25,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles, Role } from '../common/decorators/roles.decorator';
 import { AuthenticatedRequest } from '../common/interfaces/authenticated-request.interface';
-import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
+
+import { Max } from 'class-validator';
 
 @ApiTags('Gamification')
 @Controller('gamification')

@@ -8,7 +8,7 @@ import {
   Min,
 } from 'class-validator';
 
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 
 export class AuditLogQueryDto {
   @IsOptional()

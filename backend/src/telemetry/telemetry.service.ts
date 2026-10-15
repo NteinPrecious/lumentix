@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
+import { Repository, MoreThanOrEqual } from 'typeorm';
 import { TelemetryMetric, MetricType } from './entities/telemetry-metric.entity';
 import { RecordMetricDto } from './dto/record-metric.dto';
 
